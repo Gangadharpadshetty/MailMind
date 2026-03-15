@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MailMind — Email RAG Chatbot</title>
+  <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body>
+
+<!-- ── Sidebar ──────────────────────────────────────────────────────────── -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <div class="logo">
+      <span class="logo-icon">✉️</span>
+      <span class="logo-text">MailMind</span>
+    </div>
+    <div class="index-badge">
+      <span class="badge-dot"></span>
+      {{ total_chunks }} chunks · {{ total_threads }} threads
+    </div>
+  </div>
+
+  <!-- Provider Selector (Gemini only in this build) -->
+  <div class="sidebar-section">
+    <label class="section-label">🤖 LLM Provider</label>
+    <div class="hint-text">
+      {% if providers %}
+        {{ provider_label }}
+      {% else %}
+        No LLM provider configured. Set GROQ_API_KEY in .env.
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Thread Selector -->
+  <div class="sidebar-section">
+    <label class="section-label">📂 Email Thread</label>
+    <select id="threadSelect" class="select-input">
+      <option value="">— pick a thread —</option>
+      {% for tid, tdata in threads.items() %}
+      <option value="{{ tid }}">
+        {{ tid }} · {{ tdata.message_count }}msgs · {{ tdata.subject[:45] }}
+      </option>
+      {% endfor %}
+    </select>
+    <button id="startBtn" class="btn btn-primary btn-full mt-2">
+      Start Session
+    </button>
+  </div>
+
+  <!-- Search scope toggle -->
+  <div class="sidebar-section">
+    <label class="section-label">🔍 Search Scope</label>
+    <label class="toggle-row">
+      <input type="checkbox" id="outsideThreadToggle">
+      <span class="toggle-track"><span class="toggle-thumb"></span></span>
+      <span class="toggle-label">Search outside thread</span>
+    </label>
+    <p class="hint-text">Off by default — stays scoped to selected thread.</p>
+  </div>
+
+  <!-- Session info -->
+  <div class="sidebar-section" id="sessionPanel" style="display:none">
+    <label class="section-label">🔗 Active Session</label>
+    <div class="session-info">
+      <div class="info-row"><span class="info-key">Session</span><code id="sessionIdDisplay" class="info-val">—</code></div>
+      <div class="info-row"><span class="info-key">Thread</span><code id="threadIdDisplay" class="info-val">—</code></div>
+    </div>
+    <button id="resetBtn" class="btn btn-danger btn-full mt-2">Reset Session</button>
+  </div>
+
+  <!-- Links -->
+  <div class="sidebar-footer">
+    <a href="/stats" class="footer-link">📊 Stats &amp; Traces</a>
+    <a href="/docs" class="footer-link">📖 API Docs</a>
+  </div>
+</aside>
+
+<!-- ── Main Chat Area ──────────────────────────────────────────────────── -->
+<main class="main">
+  <div class="chat-topbar">
+    <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">☰</button>
+    <h1 class="chat-title" id="chatTitle">Select a thread to begin</h1>
+    <div class="provider-pill" id="providerPill">{{ current_provider }}</div>
+  </div>
+
+  <!-- Messages -->
+  <div class="messages-wrap" id="messagesWrap">
+    <div class="empty-state" id="emptyState">
+      <div class="empty-icon">📬</div>
+      <h2>MailMind</h2>
+      <p>Pick a thread in the sidebar, then start chatting.<br>
+         Every answer is grounded with inline citations.</p>
+    </div>
+    <div id="messages"></div>
+    <div id="typingIndicator" class="typing-indicator" style="display:none">
+      <span></span><span></span><span></span>
+    </div>
+  </div>
+
+  <!-- Input bar -->
+  <div class="input-bar" id="inputBar">
+    <textarea
+      id="questionInput"
+      class="question-input"
+      placeholder="Ask about this thread…"
+      rows="1"
+      disabled></textarea>
+    <button id="sendBtn" class="btn btn-send" disabled aria-label="Send">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="22" y1="2" x2="11" y2="13"></line>
+        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+      </svg>
+    </button>
+  </div>
+</main>
+
+<!-- ── Debug Panel (collapsible) ──────────────────────────────────────── -->
+<div class="debug-panel" id="debugPanel" style="display:none">
+  <div class="debug-header">
+    <span>🔬 Debug</span>
+    <button onclick="toggleDebug()" class="debug-close">✕</button>
+  </div>
+  <div class="debug-body">
+    <div class="debug-row">
+      <span class="debug-label">Rewrite</span>
+      <span id="debugRewrite" class="debug-val">—</span>
+    </div>
+    <div class="debug-row">
+      <span class="debug-label">Provider</span>
+      <span id="debugProvider" class="debug-val">—</span>
+    </div>
+    <div class="debug-row">
+      <span class="debug-label">Latency</span>
+      <span id="debugLatency" class="debug-val">—</span>
+    </div>
+    <div class="debug-row">
+      <span class="debug-label">Tokens</span>
+      <span id="debugTokens" class="debug-val">—</span>
+    </div>
+    <div class="debug-row">
+      <span class="debug-label">Trace ID</span>
+      <span id="debugTrace" class="debug-val">—</span>
+    </div>
+    <div>
+      <span class="debug-label">Top-k Retrieved</span>
+      <ul id="debugRetrieved" class="debug-list"></ul>
+    </div>
+  </div>
+</div>
+<button class="debug-fab" id="debugFab" onclick="toggleDebug()" style="display:none" title="Debug panel">🔬</button>
+
+<script src="/static/js/app.js"></script>
+</body>
+</html>

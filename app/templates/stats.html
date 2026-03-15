@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>MailMind — Stats &amp; Traces</title>
+  <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body>
+<div class="stats-page">
+  <div class="stats-header">
+    <a href="/" class="back-link">← Back to Chat</a>
+    <h1>📊 Stats &amp; Traces</h1>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-value">{{ total_chunks }}</div>
+      <div class="stat-label">Indexed Chunks</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">{{ total_threads }}</div>
+      <div class="stat-label">Email Threads</div>
+    </div>
+    {% if stats %}
+    <div class="stat-card">
+      <div class="stat-value">{{ stats.total_turns }}</div>
+      <div class="stat-label">Turns Logged</div>
+    </div>
+    <div class="stat-card {% if stats.p95_latency <= 3.0 %}stat-good{% else %}stat-warn{% endif %}">
+      <div class="stat-value">{{ "%.2f"|format(stats.p95_latency) }}s</div>
+      <div class="stat-label">p95 Latency (target ≤3.0s)</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">{{ "%.2f"|format(stats.p50_latency) }}s</div>
+      <div class="stat-label">p50 Latency</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">{{ stats.avg_tokens }}</div>
+      <div class="stat-label">Avg Tokens/Turn</div>
+    </div>
+    {% else %}
+    <div class="stat-card stat-empty">
+      <div class="stat-label">No trace data yet.<br>Ask some questions first.</div>
+    </div>
+    {% endif %}
+  </div>
+
+  {% if stats %}
+  <div class="trace-path">
+    <strong>Trace file:</strong> <code>{{ stats.trace_file }}</code>
+  </div>
+  {% endif %}
+</div>
+<script src="/static/js/app.js"></script>
+</body>
+</html>

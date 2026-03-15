@@ -1,0 +1,36 @@
+# MailMind — Python dependencies (unpinned, use latest stable)
+
+# Web framework
+fastapi
+uvicorn[standard]
+python-multipart
+jinja2
+
+# Config
+pydantic
+pydantic-settings
+python-dotenv
+
+# LLM providers
+groq
+httpx
+
+# Retrieval
+rank-bm25
+sentence-transformers
+lancedb
+
+
+# Email / doc parsing
+pypdf
+python-docx
+beautifulsoup4
+
+# Data
+pandas
+
+# Utilities
+rich
+
+# Sample attachment generation (demo only)
+fpdf2
